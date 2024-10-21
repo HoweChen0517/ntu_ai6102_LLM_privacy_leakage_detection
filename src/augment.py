@@ -55,7 +55,7 @@ if alpha_sr == alpha_ri == alpha_rs == alpha_rd == 0:
 def gen_eda(train_orig, output_file, alpha_sr, alpha_ri, alpha_rs, alpha_rd, num_aug=9):
 
     writer = open(output_file, 'w')
-    lines = open(train_orig, 'r').readlines()
+    lines = open(train_orig, 'r', encoding='utf-8').readlines()
 
     for i, line in enumerate(lines):
         parts = line[:-1].split('\t')

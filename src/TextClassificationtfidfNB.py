@@ -7,16 +7,21 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.decomposition import TruncatedSVD
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import Normalizer
-<<<<<<< HEAD
-=======
-from sklearn.model_selection import train_test_split
->>>>>>> refs/remotes/origin/main
 from sklearn.utils import shuffle
 from sklearn.naive_bayes import CategoricalNB
 from sklearn.metrics import classification_report, accuracy_score
 from sklearn.model_selection import GridSearchCV
 
 warnings.filterwarnings("ignore")
+
+def load_data(dataPath):
+    with open(dataPath, 'r', encoding='utf-8') as f:
+        data = f.readlines()
+
+    data = [line.strip().split('\t') for line in data]
+    data = pd.DataFrame(data, columns=['label', 'output'])
+
+    return data
 
 def trainTestSplit(data, test_Ratio=0.2, random_state=42):
     dataNum = data.shape[0]
@@ -71,49 +76,56 @@ def GridSearchCVNBwithTFIDF(trainData,cv):
         ]
     )
 
-<<<<<<< HEAD
     return grid, pipe
 
 if __name__ == '__main__':
-    ROOT_PATH = ('/workspaces/ntu_ai6102_LLM_privacy_leakage_detection')
-=======
-    return pipe
+    ROOT_PATH = ('F:/NTU Learn/Machine Learning Methods & Application/ntu_ai6102_LLM_privacy_leakage_detection')
 
-if __name__ == '__main__':
-    ROOT_PATH = ('/Users/howechen/Project/ntu_ai6102_LLM_privacy_leakage_detection')
->>>>>>> refs/remotes/origin/main
-    data_path = path.join(ROOT_PATH, 'data', 'data.csv')
+    edaFlag = False
+    if edaFlag:
+        data_path = path.join(ROOT_PATH, 'data', 'eda_train_data.txt')
+        trainData = load_data(data_path)
+        data_path = path.join(ROOT_PATH, 'data', 'test_data.txt')
+        testData = load_data(data_path)
+    else:
+        data_path = path.join(ROOT_PATH, 'data', 'data.txt')
+        data = load_data(data_path)
+        trainData, testData = trainTestSplit(data, test_Ratio=0.2, random_state=42)
+
     cvFlag = True
 
-    data = pd.read_csv(data_path)
-
-    trainData, testData = trainTestSplit(data, test_Ratio=0.2, random_state=42)
+    if edaFlag:
+        if cvFlag:
+            print('Naive Bayes + EDA + GridSearch:')
+        else:
+            print('Naive Bayes + EDA:')
+    else:
+        if cvFlag:
+            print('Naive Bayes + GridSearch:')
+        else:
+            print('Naive Bayes:')
 
     if cvFlag:
-<<<<<<< HEAD
         grid, pipe = GridSearchCVNBwithTFIDF(trainData, cv=5)
+        print(f'best params:\n{grid.best_params_}')
     else:
         pipe = trainNBwithTFIDF(trainData)
 
-    print(f'best params:\n{grid.best_params_}')
-=======
-        pipe = GridSearchCVNBwithTFIDF(trainData, cv=5)
-    else:
-        pipe = trainNBwithTFIDF(trainData)
-
->>>>>>> refs/remotes/origin/main
     pipe.fit(trainData['output'], trainData['label'])
     y_pred = pipe.predict(testData['output'])
     test_accuracy = accuracy_score(testData['label'], y_pred)
     result = classification_report(testData['label'], y_pred)
 
-<<<<<<< HEAD
-    print('Accuracy on test data:\n', result)
-    print('='*20,'After Grid Search, test result on best params:','='*20)
+    print('Accuracy on test data:\n', test_accuracy)
     print('Classification report on test data:\n', result)
 
 """
+Naive Bayes + GridSearch:
+best params:
+{'clf__alpha': 0.1, 'svd__n_components': 50, 'tfidf__max_features': 100, 'tfidf__norm': 'l1', 'tfidf__sublinear_tf': True}
 Accuracy on test data:
+ 0.5
+Classification report on test data:
                precision    recall  f1-score   support
 
            0       0.50      1.00      0.67         8
@@ -123,7 +135,13 @@ Accuracy on test data:
    macro avg       0.25      0.50      0.33        16
 weighted avg       0.25      0.50      0.33        16
 
-==================== After Grid Search, test result on best params: ====================
+====================================================================================================
+
+Naive Bayes + EDA + GridSearch:
+best params:
+{'clf__alpha': 0.1, 'svd__n_components': 50, 'tfidf__max_features': 100, 'tfidf__norm': 'l1', 'tfidf__sublinear_tf': True}
+Accuracy on test data:
+ 0.5
 Classification report on test data:
                precision    recall  f1-score   support
 
@@ -134,8 +152,3 @@ Classification report on test data:
    macro avg       0.25      0.50      0.33        16
 weighted avg       0.25      0.50      0.33        16
 """
-=======
-    print('Accuracy on test data: ', result)
-    print('='*50)
-    print('Classification report on test data: ', result)
->>>>>>> refs/remotes/origin/main
