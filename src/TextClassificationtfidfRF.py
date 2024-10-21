@@ -7,6 +7,10 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.decomposition import TruncatedSVD
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import Normalizer
+<<<<<<< HEAD
+=======
+from sklearn.model_selection import train_test_split
+>>>>>>> refs/remotes/origin/main
 from sklearn.utils import shuffle
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report, accuracy_score
@@ -68,10 +72,17 @@ def GridSearchCVNBwithTFIDF(trainData,cv):
         ]
     )
 
+<<<<<<< HEAD
     return grid, pipe
 
 if __name__ == '__main__':
     ROOT_PATH = ('/workspaces/ntu_ai6102_LLM_privacy_leakage_detection')
+=======
+    return pipe
+
+if __name__ == '__main__':
+    ROOT_PATH = ('/Users/howechen/Project/ntu_ai6102_LLM_privacy_leakage_detection')
+>>>>>>> refs/remotes/origin/main
     data_path = path.join(ROOT_PATH, 'data', 'data.csv')
     cvFlag = True
 
@@ -80,16 +91,24 @@ if __name__ == '__main__':
     trainData, testData = trainTestSplit(data, test_Ratio=0.2, random_state=42)
 
     if cvFlag:
+<<<<<<< HEAD
         grid, pipe = GridSearchCVNBwithTFIDF(trainData, cv=5)
     else:
         pipe = trainNBwithTFIDF(trainData)
 
     print(f'best params:\n{grid.best_params_}')
+=======
+        pipe = GridSearchCVNBwithTFIDF(trainData, cv=5)
+    else:
+        pipe = trainNBwithTFIDF(trainData)
+
+>>>>>>> refs/remotes/origin/main
     pipe.fit(trainData['output'], trainData['label'])
     y_pred = pipe.predict(testData['output'])
     test_accuracy = accuracy_score(testData['label'], y_pred)
     result = classification_report(testData['label'], y_pred)
 
+<<<<<<< HEAD
     print('Accuracy on test data:\n', result)
     print('='*20,'After Grid Search, test result on best params:','='*20)
     print('Classification report on test data:\n', result)
@@ -116,3 +135,8 @@ Classification report on test data:
    macro avg       0.94      0.94      0.94        16
 weighted avg       0.94      0.94      0.94        16
 """
+=======
+    print('Accuracy on test data: ', result)
+    print('='*50)
+    print('Classification report on test data: ', result)
+>>>>>>> refs/remotes/origin/main
