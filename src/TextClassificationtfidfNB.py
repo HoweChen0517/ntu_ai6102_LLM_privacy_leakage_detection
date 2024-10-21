@@ -7,13 +7,21 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.decomposition import TruncatedSVD
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import Normalizer
-from sklearn.model_selection import train_test_split
 from sklearn.utils import shuffle
 from sklearn.naive_bayes import CategoricalNB
 from sklearn.metrics import classification_report, accuracy_score
 from sklearn.model_selection import GridSearchCV
 
 warnings.filterwarnings("ignore")
+
+def load_data(dataPath):
+    with open(dataPath, 'r', encoding='utf-8') as f:
+        data = f.readlines()
+
+    data = [line.strip().split('\t') for line in data]
+    data = pd.DataFrame(data, columns=['label', 'output'])
+
+    return data
 
 def trainTestSplit(data, test_Ratio=0.2, random_state=42):
     dataNum = data.shape[0]
@@ -68,19 +76,38 @@ def GridSearchCVNBwithTFIDF(trainData,cv):
         ]
     )
 
-    return pipe
+    return grid, pipe
 
 if __name__ == '__main__':
-    ROOT_PATH = ('/Users/howechen/Project/ntu_ai6102_LLM_privacy_leakage_detection')
-    data_path = path.join(ROOT_PATH, 'data', 'data.csv')
+    ROOT_PATH = ('F:/NTU Learn/Machine Learning Methods & Application/ntu_ai6102_LLM_privacy_leakage_detection')
+
+    edaFlag = False
+    if edaFlag:
+        data_path = path.join(ROOT_PATH, 'data', 'eda_train_data.txt')
+        trainData = load_data(data_path)
+        data_path = path.join(ROOT_PATH, 'data', 'test_data.txt')
+        testData = load_data(data_path)
+    else:
+        data_path = path.join(ROOT_PATH, 'data', 'data.txt')
+        data = load_data(data_path)
+        trainData, testData = trainTestSplit(data, test_Ratio=0.2, random_state=42)
+
     cvFlag = True
 
-    data = pd.read_csv(data_path)
-
-    trainData, testData = trainTestSplit(data, test_Ratio=0.2, random_state=42)
+    if edaFlag:
+        if cvFlag:
+            print('Naive Bayes + EDA + GridSearch:')
+        else:
+            print('Naive Bayes + EDA:')
+    else:
+        if cvFlag:
+            print('Naive Bayes + GridSearch:')
+        else:
+            print('Naive Bayes:')
 
     if cvFlag:
-        pipe = GridSearchCVNBwithTFIDF(trainData, cv=5)
+        grid, pipe = GridSearchCVNBwithTFIDF(trainData, cv=5)
+        print(f'best params:\n{grid.best_params_}')
     else:
         pipe = trainNBwithTFIDF(trainData)
 
@@ -89,6 +116,39 @@ if __name__ == '__main__':
     test_accuracy = accuracy_score(testData['label'], y_pred)
     result = classification_report(testData['label'], y_pred)
 
-    print('Accuracy on test data: ', result)
-    print('='*50)
-    print('Classification report on test data: ', result)
+    print('Accuracy on test data:\n', test_accuracy)
+    print('Classification report on test data:\n', result)
+
+"""
+Naive Bayes + GridSearch:
+best params:
+{'clf__alpha': 0.1, 'svd__n_components': 50, 'tfidf__max_features': 100, 'tfidf__norm': 'l1', 'tfidf__sublinear_tf': True}
+Accuracy on test data:
+ 0.5
+Classification report on test data:
+               precision    recall  f1-score   support
+
+           0       0.50      1.00      0.67         8
+           1       0.00      0.00      0.00         8
+
+    accuracy                           0.50        16
+   macro avg       0.25      0.50      0.33        16
+weighted avg       0.25      0.50      0.33        16
+
+====================================================================================================
+
+Naive Bayes + EDA + GridSearch:
+best params:
+{'clf__alpha': 0.1, 'svd__n_components': 50, 'tfidf__max_features': 100, 'tfidf__norm': 'l1', 'tfidf__sublinear_tf': True}
+Accuracy on test data:
+ 0.5
+Classification report on test data:
+               precision    recall  f1-score   support
+
+           0       0.50      1.00      0.67         8
+           1       0.00      0.00      0.00         8
+
+    accuracy                           0.50        16
+   macro avg       0.25      0.50      0.33        16
+weighted avg       0.25      0.50      0.33        16
+"""
