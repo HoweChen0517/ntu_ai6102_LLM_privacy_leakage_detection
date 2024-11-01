@@ -82,7 +82,7 @@ def GridSearchCVNBwithTFIDF(trainData,cv):
 if __name__ == '__main__':
     ROOT_PATH = ('F:/NTU Learn/Machine Learning Methods & Application/ntu_ai6102_LLM_privacy_leakage_detection')
 
-    edaFlag = False
+    edaFlag = True
     if edaFlag:
         data_path = path.join(ROOT_PATH, 'data', 'eda_train_data.txt')
         trainData = load_data(data_path)
@@ -129,33 +129,33 @@ if __name__ == '__main__':
 """
 RandomForest + GridSearch:
 best params:
-{'clf__max_depth': 40, 'clf__n_estimators': 200, 'svd__n_components': 100, 'tfidf__max_features': 200, 'tfidf__norm': 'l2', 'tfidf__sublinear_tf': False}
+{'clf__max_depth': 10, 'clf__n_estimators': 300, 'svd__n_components': 50, 'tfidf__max_features': 200, 'tfidf__norm': None, 'tfidf__sublinear_tf': False}
 Accuracy on test data:
- 0.9375
+ 0.9545454545454546
 Classification report on test data:
                precision    recall  f1-score   support
 
-           0       0.89      1.00      0.94         8
-           1       1.00      0.88      0.93         8
+           0       0.92      1.00      0.96        46
+           1       1.00      0.90      0.95        42
 
-    accuracy                           0.94        16
-   macro avg       0.94      0.94      0.94        16
-weighted avg       0.94      0.94      0.94        16
+    accuracy                           0.95        88
+   macro avg       0.96      0.95      0.95        88
+weighted avg       0.96      0.95      0.95        88
 
 ====================================================================================================
 
 RandomForest + EDA + GridSearch:
 best params:
-{'clf__max_depth': 10, 'clf__n_estimators': 200, 'svd__n_components': 200, 'tfidf__max_features': 200, 'tfidf__norm': 'l1', 'tfidf__sublinear_tf': True}
+{'clf__max_depth': 20, 'clf__n_estimators': 300, 'svd__n_components': 100, 'tfidf__max_features': 200, 'tfidf__norm': None, 'tfidf__sublinear_tf': False}
 Accuracy on test data:
- 0.6875
+ 0.9318181818181818
 Classification report on test data:
                precision    recall  f1-score   support
 
-           0       0.71      0.62      0.67         8
-           1       0.67      0.75      0.71         8
+           0       0.93      0.93      0.93        46
+           1       0.93      0.93      0.93        42
 
-    accuracy                           0.69        16
-   macro avg       0.69      0.69      0.69        16
-weighted avg       0.69      0.69      0.69        16
+    accuracy                           0.93        88
+   macro avg       0.93      0.93      0.93        88
+weighted avg       0.93      0.93      0.93        88
 """

@@ -81,7 +81,7 @@ def GridSearchCVNBwithTFIDF(trainData,cv):
 if __name__ == '__main__':
     ROOT_PATH = ('F:/NTU Learn/Machine Learning Methods & Application/ntu_ai6102_LLM_privacy_leakage_detection')
 
-    edaFlag = False
+    edaFlag = True
     if edaFlag:
         data_path = path.join(ROOT_PATH, 'data', 'eda_train_data.txt')
         trainData = load_data(data_path)
@@ -124,16 +124,16 @@ Naive Bayes + GridSearch:
 best params:
 {'clf__alpha': 0.1, 'svd__n_components': 50, 'tfidf__max_features': 100, 'tfidf__norm': 'l1', 'tfidf__sublinear_tf': True}
 Accuracy on test data:
- 0.5
+ 0.4772727272727273
 Classification report on test data:
                precision    recall  f1-score   support
 
-           0       0.50      1.00      0.67         8
-           1       0.00      0.00      0.00         8
+           0       0.00      0.00      0.00        46
+           1       0.48      1.00      0.65        42
 
-    accuracy                           0.50        16
-   macro avg       0.25      0.50      0.33        16
-weighted avg       0.25      0.50      0.33        16
+    accuracy                           0.48        88
+   macro avg       0.24      0.50      0.32        88
+weighted avg       0.23      0.48      0.31        88
 
 ====================================================================================================
 
@@ -141,14 +141,14 @@ Naive Bayes + EDA + GridSearch:
 best params:
 {'clf__alpha': 0.1, 'svd__n_components': 50, 'tfidf__max_features': 100, 'tfidf__norm': 'l1', 'tfidf__sublinear_tf': True}
 Accuracy on test data:
- 0.5
+ 0.4772727272727273
 Classification report on test data:
                precision    recall  f1-score   support
 
-           0       0.50      1.00      0.67         8
-           1       0.00      0.00      0.00         8
+           0       0.00      0.00      0.00        46
+           1       0.48      1.00      0.65        42
 
-    accuracy                           0.50        16
-   macro avg       0.25      0.50      0.33        16
-weighted avg       0.25      0.50      0.33        16
+    accuracy                           0.48        88
+   macro avg       0.24      0.50      0.32        88
+weighted avg       0.23      0.48      0.31        88
 """
