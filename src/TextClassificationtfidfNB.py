@@ -1,3 +1,4 @@
+import os
 from os import listdir, path
 import math
 import pandas as pd
@@ -79,7 +80,10 @@ def GridSearchCVNBwithTFIDF(trainData,cv):
     return grid, pipe
 
 if __name__ == '__main__':
-    ROOT_PATH = ('F:/NTU Learn/Machine Learning Methods & Application/ntu_ai6102_LLM_privacy_leakage_detection')
+    if os.getcwd().endswith('src'):
+        ROOT_PATH = path.dirname(os.getcwd())
+    else:
+        ROOT_PATH = os.getcwd()
 
     edaFlag = False
     if edaFlag:
@@ -96,18 +100,19 @@ if __name__ == '__main__':
 
     if edaFlag:
         if cvFlag:
-            print('Naive Bayes + EDA + GridSearch:')
+            print('Naive Bayes + TFIDF + EDA + GridSearch:')
         else:
-            print('Naive Bayes + EDA:')
+            print('Naive Bayes + TFIDF + EDA:')
     else:
         if cvFlag:
-            print('Naive Bayes + GridSearch:')
+            print('Naive Bayes + TFIDF + GridSearch:')
         else:
-            print('Naive Bayes:')
+            print('Naive Bayes + TFIDF:')
 
     if cvFlag:
         grid, pipe = GridSearchCVNBwithTFIDF(trainData, cv=5)
         print(f'best params:\n{grid.best_params_}')
+        print(f'Best cross-validation score: {grid.best_score_:.3f}')
     else:
         pipe = trainNBwithTFIDF(trainData)
 
@@ -120,9 +125,10 @@ if __name__ == '__main__':
     print('Classification report on test data:\n', result)
 
 """
-Naive Bayes + GridSearch:
+Naive Bayes + TFIDF + GridSearch:
 best params:
 {'clf__alpha': 0.1, 'svd__n_components': 50, 'tfidf__max_features': 100, 'tfidf__norm': 'l1', 'tfidf__sublinear_tf': True}
+Best cross-validation score: 0.501
 Accuracy on test data:
  0.49166666666666664
 Classification report on test data:
@@ -137,7 +143,7 @@ weighted avg       0.24      0.49      0.32       120
 
 ====================================================================================================
 
-Naive Bayes + EDA + GridSearch:
+Naive Bayes + TFIDF + EDA + GridSearch:
 best params:
 {'clf__alpha': 0.1, 'svd__n_components': 50, 'tfidf__max_features': 100, 'tfidf__norm': 'l1', 'tfidf__sublinear_tf': True}
 Accuracy on test data:
