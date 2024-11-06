@@ -129,33 +129,33 @@ if __name__ == '__main__':
 """
 RandomForest + GridSearch:
 best params:
-{'clf__max_depth': 10, 'clf__n_estimators': 300, 'svd__n_components': 50, 'tfidf__max_features': 200, 'tfidf__norm': None, 'tfidf__sublinear_tf': False}
+{'clf__max_depth': 30, 'clf__n_estimators': 200, 'svd__n_components': 100, 'tfidf__max_features': 500, 'tfidf__norm': 'l2', 'tfidf__sublinear_tf': False}
 Accuracy on test data:
- 0.9545454545454546
+ 0.9
 Classification report on test data:
                precision    recall  f1-score   support
 
-           0       0.92      1.00      0.96        46
-           1       1.00      0.90      0.95        42
+           0       0.93      0.86      0.89        59
+           1       0.88      0.93      0.90        61
 
-    accuracy                           0.95        88
-   macro avg       0.96      0.95      0.95        88
-weighted avg       0.96      0.95      0.95        88
+    accuracy                           0.90       120
+   macro avg       0.90      0.90      0.90       120
+weighted avg       0.90      0.90      0.90       120
 
 ====================================================================================================
 
 RandomForest + EDA + GridSearch:
 best params:
-{'clf__max_depth': 20, 'clf__n_estimators': 300, 'svd__n_components': 100, 'tfidf__max_features': 200, 'tfidf__norm': None, 'tfidf__sublinear_tf': False}
+{'clf__max_depth': 30, 'clf__n_estimators': 200, 'svd__n_components': 100, 'tfidf__max_features': 500, 'tfidf__norm': 'l2', 'tfidf__sublinear_tf': False}
 Accuracy on test data:
- 0.9318181818181818
+ 0.9333333333333333
 Classification report on test data:
                precision    recall  f1-score   support
 
-           0       0.93      0.93      0.93        46
-           1       0.93      0.93      0.93        42
+           0       0.98      0.88      0.93        59
+           1       0.90      0.98      0.94        61
 
-    accuracy                           0.93        88
-   macro avg       0.93      0.93      0.93        88
-weighted avg       0.93      0.93      0.93        88
+    accuracy                           0.93       120
+   macro avg       0.94      0.93      0.93       120
+weighted avg       0.94      0.93      0.93       120
 """
