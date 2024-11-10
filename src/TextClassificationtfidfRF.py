@@ -32,7 +32,7 @@ def trainTestSplit(data, test_Ratio=0.2, random_state=42):
     testData = data.loc[trainNum:]
     return trainData, testData
 
-def trainNBwithTFIDF(trainData):
+def trainRFwithTFIDF(trainData):
     pipe = Pipeline(
         [
             ('tfidf', TfidfVectorizer(stop_words='english', max_features=200)),
@@ -44,7 +44,7 @@ def trainNBwithTFIDF(trainData):
     pipe.fit(trainData['output'], trainData['label'])
     return pipe
 
-def GridSearchCVNBwithTFIDF(trainData,cv):
+def GridSearchCVRFwithTFIDF(trainData,cv):
     pipe = Pipeline(
         [
             ('tfidf', TfidfVectorizer(stop_words='english')),
@@ -112,11 +112,11 @@ if __name__ == '__main__':
             print('RandomForest + TFIDF:')
 
     if cvFlag:
-        grid, pipe = GridSearchCVNBwithTFIDF(trainData, cv=5)
+        grid, pipe = GridSearchCVRFwithTFIDF(trainData, cv=5)
         print(f'best params:\n{grid.best_params_}')
         print(f'Best cross-validation score: {grid.best_score_:.3f}')
     else:
-        pipe = trainNBwithTFIDF(trainData)
+        pipe = trainRFwithTFIDF(trainData)
 
     pipe.fit(trainData['output'], trainData['label'])
     y_pred = pipe.predict(testData['output'])

@@ -32,7 +32,7 @@ def trainTestSplit(data, test_Ratio=0.2, random_state=42):
     testData = data.loc[trainNum:]
     return trainData, testData
 
-def trainNBwithNgram(trainData):
+def trainRFwithNgram(trainData):
     pipe = Pipeline(
         [
             ('ngram', CountVectorizer(ngram_range=(1, 2),  # using 1-gram and 2-gram
@@ -46,7 +46,7 @@ def trainNBwithNgram(trainData):
     pipe.fit(trainData['output'], trainData['label'])
     return pipe
 
-def GridSearchCVNBwithNgram(trainData, cv):
+def GridSearchCVRFwithNgram(trainData, cv):
     pipe = Pipeline(
         [
             ('ngram', CountVectorizer(stop_words='english')),
@@ -115,11 +115,11 @@ if __name__ == '__main__':
             print('RandomForest + N-gram:')
 
     if cvFlag:
-        grid, pipe = GridSearchCVNBwithNgram(trainData, cv=5)
+        grid, pipe = GridSearchCVRFwithNgram(trainData, cv=5)
         print(f'best params:\n{grid.best_params_}')
         print(f'Best cross-validation score: {grid.best_score_:.3f}')
     else:
-        pipe = trainNBwithNgram(trainData)
+        pipe = trainRFwithNgram(trainData)
 
     pipe.fit(trainData['output'], trainData['label'])
     y_pred = pipe.predict(testData['output'])
