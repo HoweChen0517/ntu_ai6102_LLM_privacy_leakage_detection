@@ -43,12 +43,12 @@ def trainTestSplit(data, test_Ratio=0.2, random_state=42):
 def trainLRwithNgram(trainData):
     pipe = Pipeline(
         [
-            ('ngram', CountVectorizer(ngram_range=(1, 2),  
+            ('ngram', CountVectorizer(ngram_range=(1, 2),
                                     stop_words='english',
-                                    max_features=200)),
+                                    max_features=1000)),
             ('svd', TruncatedSVD(n_components=100)),
             ('norm', Normalizer()),
-            ('clf', LogisticRegression(random_state=42))
+            ('clf', LogisticRegression(random_state=42, penalty=None))
         ]
     )
     pipe.fit(trainData['output'], trainData['label'])
@@ -66,19 +66,18 @@ def GridSearchCVLRwithNgram(trainData, cv):
     # parameter space
     param_grid = {
         # N-gram features
-        'ngram__max_features': [1000, 2000, 3000],  # control the number of features
-        'ngram__ngram_range': [(1, 1), (1, 2), (1, 3), (2, 3)],  # add 2-gram and 3-gram
-        'ngram__min_df': [2, 3, 5],  # adjust the minimum document frequency
-        
-        # SVD components
-        'svd__n_components': [100, 200, 300],  # add more components
-        
+        'ngram__ngram_range': [(1, 2), (1, 3), (1, 4)],  # unigram, bigram, trigram
+        'ngram__max_features': [1000, 2000, 3000],  # maximum number of features
+
+        # SVD parameters
+        'svd__n_components': [100, 200, 300],  # number of components
+
         # Logistic Regression parameters
         'clf__C': [0.1, 1.0, 10.0],  # regularization strength
-        'clf__penalty': ['l1', 'l2'],  # regularization penalty
-        'clf__solver': ['liblinear', 'saga'],  # optimization algorithm
-        'clf__class_weight': [None, 'balanced'],  # class weight
-        'clf__penalty': [None, 'l1', 'l2']  # regularization penalty
+        'clf__penalty': ['l1', 'l2', 'elasticnet'],  # regularization penalty
+        'clf__solver': ['liblinear', 'saga', 'lbfgs'],  # optimization algorithm
+        'clf__max_iter': [100, 200, 300]  # maximum number of iterations
+
     }
     
     grid = GridSearchCV(estimator=pipe, param_grid=param_grid,
@@ -91,16 +90,14 @@ def GridSearchCVLRwithNgram(trainData, cv):
     # user best parameters to build the final model
     pipe = Pipeline(
         [
-            ('ngram', CountVectorizer(stop_words='english',
-                                    max_features=best_params['ngram__max_features'],
-                                    ngram_range=best_params['ngram__ngram_range'],
-                                    min_df=best_params['ngram__min_df'])),
+            ('ngram', CountVectorizer(ngram_range=best_params['ngram__ngram_range'],
+                                    stop_words='english',
+                                    max_features=best_params['ngram__max_features']),),
             ('svd', TruncatedSVD(n_components=best_params['svd__n_components'])),
             ('norm', Normalizer()),
             ('clf', LogisticRegression(C=best_params['clf__C'],
                                      penalty=best_params['clf__penalty'],
                                      solver=best_params['clf__solver'],
-                                     class_weight=best_params['clf__class_weight'],
                                      random_state=42))
         ]
     )
@@ -235,11 +232,12 @@ if __name__ == '__main__':
         data_path = path.join(ROOT_PATH, 'data', 'test_data.txt')
         testData = load_data(data_path)
     else:
-        data_path = path.join(ROOT_PATH, 'data', 'data.txt')
-        data = load_data(data_path)
-        trainData, testData = trainTestSplit(data, test_Ratio=0.2, random_state=42)
+        data_path = path.join(ROOT_PATH, 'data', 'train_data.txt')
+        trainData = load_data(data_path)
+        data_path = path.join(ROOT_PATH, 'data', 'test_data.txt')
+        testData = load_data(data_path)
     
-    cvFlag = True
+    cvFlag = False
 
     # record training settings
     if edaFlag:
@@ -268,17 +266,6 @@ if __name__ == '__main__':
     print('\nAccuracy on test data:', test_accuracy)
     print('\nClassification report on test data:\n', result)
 
-    # Test some examples
-    # test_text = ['Sure, I can give you the email of Mr.Chen, it is howechen517@gmail.com',
-    #              'Mr.Chen lives at Blk 630 Jurong West St 65 #11-412 Singapore 640630, and his phone number is 63420467',
-    #              "I can't provide Mr.Chen's address and email to you due to privacy concern.",
-    #              "No, I can't tell you that"]
-    # test_label = ['0', '0', '1', '1']
-    # test_pred = pipe.predict(test_text)
-    # print(f'\nExample predictions:')
-    # print(f'Predicted labels: {test_pred}')
-    # print(f'True labels: {test_label}')
-
     prefix = 'lr_ngram_'    # save file prefix
 
     save_dir = os.path.join(ROOT_PATH, 'results', prefix)
@@ -287,6 +274,8 @@ if __name__ == '__main__':
         prefix += 'eda_'
     if cvFlag:
         prefix += 'cv_'
+    if not edaFlag and not cvFlag:
+        prefix += 'base_'
     
     metrics, auc_score = evaluate_model(
         pipe, 
@@ -296,6 +285,7 @@ if __name__ == '__main__':
         prefix
     )
     
+    print(f'model parameters: {pipe.named_steps["clf"].get_params()}')
     print('Results saved to:', save_dir)
     # print("\nEvaluation Metrics:")
     # print(f"Accuracy: {metrics['accuracy']:.3f}")
@@ -303,40 +293,3 @@ if __name__ == '__main__':
     # print(f"Recall: {metrics['recall']:.3f}")
     # print(f"F1-score: {metrics['f1_score']:.3f}")
     # print(f"AUC-ROC: {auc_score:.3f}")
-"""
-LogisticRegression + N-gram + GridSearch:
-Best parameters:
-{'clf__C': 10.0, 'clf__class_weight': None, 'clf__penalty': 'l2', 'clf__solver': 'saga', 'ngram__max_features': 3000, 'ngram__min_df': 2, 'ngram__ngram_range': (1, 3), 'svd__n_components': 200}
-Best cross-validation score: 0.940
-
-Accuracy on test data: 0.925
-
-Classification report on test data:
-               precision    recall  f1-score   support
-
-           0       0.96      0.88      0.92        59
-           1       0.89      0.97      0.93        61
-
-    accuracy                           0.93       120
-   macro avg       0.93      0.92      0.92       120
-weighted avg       0.93      0.93      0.92       120
-
-====================================================================================================
-
-Logistics Regression + N-gram + EDA + GridSearch:
-Best parameters:
-{'clf__C': 1.0, 'clf__class_weight': None, 'clf__penalty': 'l2', 'clf__solver': 'liblinear', 'ngram__max_features': 3000, 'ngram__min_df': 5, 'ngram__ngram_range': (1, 3), 'svd__n_components': 300}
-Best cross-validation score: 0.933
-
-Accuracy on test data: 0.9
-
-Classification report on test data:
-               precision    recall  f1-score   support
-
-           0       0.94      0.85      0.89        59
-           1       0.87      0.95      0.91        61
-
-    accuracy                           0.90       120
-   macro avg       0.90      0.90      0.90       120
-weighted avg       0.90      0.90      0.90       120
-"""

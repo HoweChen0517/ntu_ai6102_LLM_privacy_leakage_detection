@@ -46,10 +46,10 @@ def trainLRwithTFIDF(trainData):
             ('tfidf', TfidfVectorizer(stop_words='english', max_features=200)),
             ('svd', TruncatedSVD(n_components=100)),
             ('norm', Normalizer()),
-            ('clf', LogisticRegression(random_state=42))
+            ('clf', LogisticRegression(random_state=42, penalty=None))
         ]
     )
-    pipe.fit(trainData['output'], trainData['label'])
+    # pipe.fit(trainData['output'], trainData['label'])
     return pipe
 
 def GridSearchCVLRwithTFIDF(trainData, cv):
@@ -63,19 +63,16 @@ def GridSearchCVLRwithTFIDF(trainData, cv):
     )
     # parameter space
     param_grid = {
-        # Tf-idf features
-        'tfidf__max_features': [100, 200, 500],
-        'tfidf__norm': ['l1', 'l2', None],
+        'tfidf__max_features': [200, 300, 400, 500, 1000],
         'tfidf__sublinear_tf': [True, False],
+        'tfidf__norm': ['l1', 'l2'],
 
-        # SVD components
-        'svd__n_components': [100, 200, 300],  # add more components
-        
-        # Logistic Regression parameters
+        'svd__n_components': [50, 100, 200],
+
         'clf__C': [0.1, 1.0, 10.0],  # regularization strength
-        'clf__penalty': ['l1', 'l2'],  # regularization penalty
-        'clf__solver': ['liblinear', 'saga'],  # optimization algorithm
-        'clf__class_weight': [None, 'balanced']  # class weight
+        'clf__penalty': ['l1', 'l2', 'elasticnet'],  # regularization penalty
+        'clf__solver': ['liblinear', 'saga', 'lbfgs'],  # optimization algorithm
+        'clf__max_iter': [100, 200, 300]  # maximum number of iterations
     }
     
     grid = GridSearchCV(estimator=pipe, param_grid=param_grid,
@@ -88,22 +85,20 @@ def GridSearchCVLRwithTFIDF(trainData, cv):
     # user best parameters to build the final model
     pipe = Pipeline(
         [
-            ('tfidf', TfidfVectorizer(stop_words='english',
-                                    max_features=best_params['tfidf__max_features'],
-                                    norm=best_params['tfidf__norm'],
-                                    sublinear_tf=best_params['tfidf__sublinear_tf'])),
+            ('tfidf', TfidfVectorizer(stop_words='english', 
+                                      max_features=best_params['tfidf__max_features'],
+                                      sublinear_tf=best_params['tfidf__sublinear_tf'],
+                                      norm=best_params['tfidf__norm'])),
             ('svd', TruncatedSVD(n_components=best_params['svd__n_components'])),
             ('norm', Normalizer()),
             ('clf', LogisticRegression(C=best_params['clf__C'],
                                      penalty=best_params['clf__penalty'],
                                      solver=best_params['clf__solver'],
-                                     class_weight=best_params['clf__class_weight'],
                                      random_state=42))
         ]
     )
 
     return grid, pipe
-
 
 def save_evaluation_metrics(y_true, y_pred, y_pred_proba, save_dir, prefix=''):
     """
@@ -233,11 +228,12 @@ if __name__ == '__main__':
         data_path = path.join(ROOT_PATH, 'data', 'test_data.txt')
         testData = load_data(data_path)
     else:
-        data_path = path.join(ROOT_PATH, 'data', 'data.txt')
-        data = load_data(data_path)
-        trainData, testData = trainTestSplit(data, test_Ratio=0.2, random_state=42)
+        data_path = path.join(ROOT_PATH, 'data', 'train_data.txt')
+        trainData = load_data(data_path)
+        data_path = path.join(ROOT_PATH, 'data', 'test_data.txt')
+        testData = load_data(data_path)
     
-    cvFlag = True
+    cvFlag = False
 
     # record training settings
     if edaFlag:
@@ -274,6 +270,8 @@ if __name__ == '__main__':
         prefix += 'eda_'
     if cvFlag:
         prefix += 'cv_'
+    if not edaFlag and not cvFlag:
+        prefix += 'base_'
     
     metrics, auc_score = evaluate_model(
         pipe, 
@@ -283,42 +281,5 @@ if __name__ == '__main__':
         prefix
     )
     
+    print(f'model parameters: {pipe.named_steps["clf"].get_params()}')
     print('Results saved to:', save_dir)
-
-"""
-LogisticRegression + TFIDF + GridSearch:
-Best parameters:
-{'clf__C': 10.0, 'clf__class_weight': None, 'clf__penalty': 'l2', 'clf__solver': 'liblinear', 'svd__n_components': 100, 'tfidf__max_features': 500, 'tfidf__norm': 'l2', 'tfidf__sublinear_tf': False}
-Best cross-validation score: 0.933
-
-Accuracy on test data: 0.9
-
-Classification report on test data:
-               precision    recall  f1-score   support
-
-           0       0.96      0.83      0.89        59
-           1       0.86      0.97      0.91        61
-
-    accuracy                           0.90       120
-   macro avg       0.91      0.90      0.90       120
-weighted avg       0.91      0.90      0.90       120
-
-====================================================================================================
-
-LogisticRegression + TFIDF + EDA + GridSearch:
-Best parameters:
-{'clf__C': 1.0, 'clf__class_weight': 'balanced', 'clf__penalty': 'l2', 'clf__solver': 'saga', 'svd__n_components': 300, 'tfidf__max_features': 500, 'tfidf__norm': 'l2', 'tfidf__sublinear_tf': True}
-Best cross-validation score: 0.926
-
-Accuracy on test data: 0.9333333333333333
-
-Classification report on test data:
-               precision    recall  f1-score   support
-
-           0       0.98      0.88      0.93        59
-           1       0.90      0.98      0.94        61
-
-    accuracy                           0.93       120
-   macro avg       0.94      0.93      0.93       120
-weighted avg       0.94      0.93      0.93       120
-"""

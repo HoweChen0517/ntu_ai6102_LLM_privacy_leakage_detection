@@ -54,7 +54,7 @@ def trainRFwithTFIDF(trainData):
             ('clf', RandomForestClassifier())
         ]
     )
-    pipe.fit(trainData['output'], trainData['label'])
+
     return pipe
 
 def GridSearchCVRFwithTFIDF(trainData,cv):
@@ -67,10 +67,12 @@ def GridSearchCVRFwithTFIDF(trainData,cv):
         ]
     )
     param_grid = {
-        'tfidf__max_features': [100, 200, 500],
-        'tfidf__norm': ['l1', 'l2', None],
+        'tfidf__max_features': [200, 300, 400, 500, 1000],
         'tfidf__sublinear_tf': [True, False],
+        'tfidf__norm': ['l1', 'l2'],
+
         'svd__n_components': [50, 100, 200],
+
         'clf__n_estimators': [100, 200, 300],
         'clf__max_depth': [10, 20, 30, 40, 50]
     }
@@ -83,11 +85,12 @@ def GridSearchCVRFwithTFIDF(trainData,cv):
         [
             ('tfidf', TfidfVectorizer(stop_words='english', 
                                       max_features=best_params['tfidf__max_features'], 
-                                      norm=best_params['tfidf__norm'], 
-                                      sublinear_tf=best_params['tfidf__sublinear_tf'])),
+                                      sublinear_tf=best_params['tfidf__sublinear_tf'], 
+                                      norm=best_params['tfidf__norm'])),
             ('svd', TruncatedSVD(n_components=best_params['svd__n_components'])),
             ('norm', Normalizer()),
-            ('clf', RandomForestClassifier())
+            ('clf', RandomForestClassifier(n_estimators=best_params['clf__n_estimators'],
+                                         max_depth=best_params['clf__max_depth']))
         ]
     )
 
@@ -221,11 +224,12 @@ if __name__ == '__main__':
         data_path = path.join(ROOT_PATH, 'data', 'test_data.txt')
         testData = load_data(data_path)
     else:
-        data_path = path.join(ROOT_PATH, 'data', 'data.txt')
-        data = load_data(data_path)
-        trainData, testData = trainTestSplit(data, test_Ratio=0.2, random_state=42)
+        data_path = path.join(ROOT_PATH, 'data', 'train_data.txt')
+        trainData = load_data(data_path)
+        data_path = path.join(ROOT_PATH, 'data', 'test_data.txt')
+        testData = load_data(data_path)
     
-    cvFlag = True
+    cvFlag = False
 
     # record training settings
     if edaFlag:
@@ -251,7 +255,7 @@ if __name__ == '__main__':
     test_accuracy = accuracy_score(testData['label'], y_pred)
     result = classification_report(testData['label'], y_pred)
 
-    print('Accuracy on test data:\n', test_accuracy)
+    print(f'Accuracy on test data:\n {test_accuracy:.3f}')
     print('Classification report on test data:\n', result)
 
     prefix = 'rf_tfidf_'    # save file prefix
@@ -262,6 +266,8 @@ if __name__ == '__main__':
         prefix += 'eda_'
     if cvFlag:
         prefix += 'cv_'
+    if not edaFlag and not cvFlag:
+        prefix += 'base_'
     
     metrics, auc_score = evaluate_model(
         pipe, 
@@ -271,40 +277,7 @@ if __name__ == '__main__':
         prefix
     )
     
+    print(f'tfidf parameters: {pipe.named_steps["tfidf"].get_params()}')
+    print(f'svd parameters: {pipe.named_steps["svd"].get_params()}')
+    print(f'model parameters: {pipe.named_steps["clf"].get_params()}')
     print('Results saved to:', save_dir)
-
-"""
-RandomForest + TFIDF + GridSearch:
-best params:
-{'clf__max_depth': 50, 'clf__n_estimators': 200, 'svd__n_components': 100, 'tfidf__max_features': 500, 'tfidf__norm': 'l2', 'tfidf__sublinear_tf': True}
-Best cross-validation score: 0.927
-Accuracy on test data:
- 0.925
-Classification report on test data:
-               precision    recall  f1-score   support
-
-           0       0.96      0.88      0.92        59
-           1       0.89      0.97      0.93        61
-
-    accuracy                           0.93       120
-   macro avg       0.93      0.92      0.92       120
-weighted avg       0.93      0.93      0.92       120
-
-====================================================================================================
-
-RandomForest + TFIDF + EDA + GridSearch:
-best params:
-{'clf__max_depth': 20, 'clf__n_estimators': 100, 'svd__n_components': 100, 'tfidf__max_features': 500, 'tfidf__norm': 'l2', 'tfidf__sublinear_tf': False}
-Best cross-validation score: 0.930
-Accuracy on test data:
- 0.9166666666666666
-Classification report on test data:
-               precision    recall  f1-score   support
-
-           0       0.96      0.86      0.91        59
-           1       0.88      0.97      0.92        61
-
-    accuracy                           0.92       120
-   macro avg       0.92      0.92      0.92       120
-weighted avg       0.92      0.92      0.92       120
-"""

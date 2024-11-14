@@ -57,17 +57,23 @@ def trainRFwithNgram(trainData):
 def GridSearchCVRFwithNgram(trainData, cv):
     pipe = Pipeline(
         [
-            ('ngram', CountVectorizer(stop_words='english')),
-            ('svd', TruncatedSVD()),
+            ('ngram', CountVectorizer(ngram_range=(1, 2),  # using 1-gram and 2-gram
+                                    stop_words='english',
+                                    max_features=200)),
+            ('svd', TruncatedSVD(n_components=100)),
             ('norm', Normalizer()),
             ('clf', RandomForestClassifier())
         ]
     )
     param_grid = {
-        'ngram__max_features': [100, 200, 500],
-        'ngram__ngram_range': [(1, 1), (1, 2), (1, 3)],  # try different n-gram
-        'ngram__min_df': [1, 2, 3],  # minimum document frequency
-        'svd__n_components': [50, 100, 200],
+        # N-gram features
+        'ngram__ngram_range': [(1, 2), (1, 3), (1, 4)],  # unigram, bigram, trigram
+        'ngram__max_features': [1000, 2000, 3000],  # maximum number of features
+
+        # SVD parameters
+        'svd__n_components': [100, 200, 300],  # number of components
+
+        # Random Forest parameters
         'clf__n_estimators': [100, 200, 300],
         'clf__max_depth': [10, 20, 30, 40, 50]
     }
@@ -78,10 +84,9 @@ def GridSearchCVRFwithNgram(trainData, cv):
 
     pipe = Pipeline(
         [
-            ('ngram', CountVectorizer(stop_words='english',
-                                    max_features=best_params['ngram__max_features'],
-                                    ngram_range=best_params['ngram__ngram_range'],
-                                    min_df=best_params['ngram__min_df'])),
+            ('ngram', CountVectorizer(ngram_range=best_params['ngram__ngram_range'],
+                                    stop_words='english',
+                                    max_features=best_params['ngram__max_features']),),
             ('svd', TruncatedSVD(n_components=best_params['svd__n_components'])),
             ('norm', Normalizer()),
             ('clf', RandomForestClassifier(n_estimators=best_params['clf__n_estimators'],
@@ -260,7 +265,9 @@ if __name__ == '__main__':
         prefix += 'eda_'
     if cvFlag:
         prefix += 'cv_'
-    
+    if not edaFlag and not cvFlag:
+        prefix += 'base_'
+
     metrics, auc_score = evaluate_model(
         pipe, 
         testData['output'], 
@@ -269,38 +276,6 @@ if __name__ == '__main__':
         prefix
     )
     
+    print(f'model parameters: {pipe.named_steps["clf"].get_params()}')
     print('Results saved to:', save_dir)
 
-"""
-RandomForest + N-gram + GridSearch:
-best params:
-{'clf__max_depth': 20, 'clf__n_estimators': 100, 'ngram__max_features': 500, 'ngram__min_df': 2, 'ngram__ngram_range': (1, 3), 'svd__n_components': 200}
-Accuracy on test data:
- 0.9416666666666667
-Classification report on test data:
-               precision    recall  f1-score   support
-
-           0       0.96      0.92      0.94        59
-           1       0.92      0.97      0.94        61
-
-    accuracy                           0.94       120
-   macro avg       0.94      0.94      0.94       120
-weighted avg       0.94      0.94      0.94       120
-
-====================================================================================================
-
-RandomForest + N-gram + EDA + GridSearch:
-best params:
-{'clf__max_depth': 50, 'clf__n_estimators': 300, 'ngram__max_features': 500, 'ngram__min_df': 3, 'ngram__ngram_range': (1, 3), 'svd__n_components': 200}
-Accuracy on test data:
- 0.925
-Classification report on test data:
-               precision    recall  f1-score   support
-
-           0       0.98      0.86      0.92        59
-           1       0.88      0.98      0.93        61
-
-    accuracy                           0.93       120
-   macro avg       0.93      0.92      0.92       120
-weighted avg       0.93      0.93      0.92       120
-"""

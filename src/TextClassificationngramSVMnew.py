@@ -57,19 +57,23 @@ def trainSVMwithNgram(trainData):
 def GridSearchCVSVMwithNgram(trainData, cv):
     pipe = Pipeline(
         [
-            ('ngram', CountVectorizer(stop_words='english')),
-            ('svd', TruncatedSVD()),
+            ('ngram', CountVectorizer(ngram_range=(1, 2),
+                                    stop_words='english',
+                                    max_features=1000)),
+            ('svd', TruncatedSVD(n_components=100)),
             ('norm', Normalizer()),
             ('clf', svm.SVC(probability=True))
         ]
     )
     param_grid = {
-        'ngram__max_features': [100, 200, 500],
-        'ngram__ngram_range': [(1, 1), (1, 2), (1, 3)],  # try different n-gram
-        'ngram__min_df': [1, 2, 3],  # minimum document frequency
+        # N-gram features
+        'ngram__ngram_range': [(1, 2), (1, 3), (1, 4)],  # unigram, bigram, trigram
+        'ngram__max_features': [1000, 2000, 3000],  # maximum number of features
 
-        'svd__n_components': [50, 100, 200],
+        # SVD parameters
+        'svd__n_components': [100, 200, 300],  # number of components
 
+        # SVM parameters
         'clf__C': [0.1, 1, 10, 100],
         'clf__gamma': ['scale', 'auto'],
         'clf__kernel': ['linear', 'rbf']
@@ -82,10 +86,9 @@ def GridSearchCVSVMwithNgram(trainData, cv):
 
     pipe = Pipeline(
         [
-            ('ngram', CountVectorizer(stop_words='english',
-                                    max_features=best_params['ngram__max_features'],
-                                    ngram_range=best_params['ngram__ngram_range'],
-                                    min_df=best_params['ngram__min_df'])),
+            ('ngram', CountVectorizer(ngram_range=best_params['ngram__ngram_range'],
+                                    stop_words='english',
+                                    max_features=best_params['ngram__max_features']),),
             ('svd', TruncatedSVD(n_components=best_params['svd__n_components'])),
             ('norm', Normalizer()),
             ('clf', svm.SVC(C=best_params['clf__C'], gamma=best_params['clf__gamma'], kernel=best_params['clf__kernel'], probability=True))
@@ -226,7 +229,7 @@ if __name__ == '__main__':
         data = load_data(data_path)
         trainData, testData = trainTestSplit(data, test_Ratio=0.2, random_state=42)
     
-    cvFlag = True
+    cvFlag = False
 
     # record training settings
     if edaFlag:
@@ -263,7 +266,9 @@ if __name__ == '__main__':
         prefix += 'eda_'
     if cvFlag:
         prefix += 'cv_'
-    
+    if not edaFlag and not cvFlag:
+        prefix += 'base_'
+
     metrics, auc_score = evaluate_model(
         pipe, 
         testData['output'], 
@@ -272,39 +277,5 @@ if __name__ == '__main__':
         prefix
     )
     
+    print(f'model parameters: {pipe.named_steps["clf"].get_params()}')
     print('Results saved to:', save_dir)
-"""
-SVM + N-gram + GridSearch:
-best params:
-{'clf__C': 100, 'clf__gamma': 'scale', 'clf__kernel': 'rbf', 'ngram__max_features': 500, 'ngram__min_df': 2, 'ngram__ngram_range': (1, 3), 'svd__n_components': 200}
-Best cross-validation score: 0.942
-Accuracy on test data:
- 0.9333333333333333
-Classification report on test data:
-               precision    recall  f1-score   support
-
-           0       0.96      0.90      0.93        59
-           1       0.91      0.97      0.94        61
-
-    accuracy                           0.93       120
-   macro avg       0.94      0.93      0.93       120
-weighted avg       0.94      0.93      0.93       120
-
-====================================================================================================
-
-SVM + N-gram + EDA + GridSearch:
-best params:
-{'clf__C': 100, 'clf__gamma': 'scale', 'clf__kernel': 'rbf', 'ngram__max_features': 500, 'ngram__min_df': 3, 'ngram__ngram_range': (1, 1), 'svd__n_components': 100}
-Best cross-validation score: 0.935
-Accuracy on test data:
- 0.925
-Classification report on test data:
-               precision    recall  f1-score   support
-
-           0       0.98      0.86      0.92        59
-           1       0.88      0.98      0.93        61
-
-    accuracy                           0.93       120
-   macro avg       0.93      0.92      0.92       120
-weighted avg       0.93      0.93      0.92       120
-"""

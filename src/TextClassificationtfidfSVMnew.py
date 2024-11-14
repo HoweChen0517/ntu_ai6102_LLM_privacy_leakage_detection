@@ -54,7 +54,7 @@ def trainSVMwithTFIDF(trainData):
             ('clf', svm.SVC(probability=True))
         ]
     )
-    pipe.fit(trainData['output'], trainData['label'])
+
     return pipe
 
 def GridSearchCVSVMwithTFIDF(trainData, cv):
@@ -67,9 +67,9 @@ def GridSearchCVSVMwithTFIDF(trainData, cv):
         ]
     )
     param_grid = {
-        'tfidf__max_features': [100, 200, 500],
-        'tfidf__norm': ['l1', 'l2', None],
+        'tfidf__max_features': [200, 300, 400, 500, 1000],
         'tfidf__sublinear_tf': [True, False],
+        'tfidf__norm': ['l1', 'l2'],
 
         'svd__n_components': [50, 100, 200],
 
@@ -85,10 +85,11 @@ def GridSearchCVSVMwithTFIDF(trainData, cv):
 
     pipe = Pipeline(
         [
-            ('tfidf', TfidfVectorizer(stop_words='english',
-                                    max_features=best_params['tfidf__max_features'],
-                                    norm=best_params['tfidf__norm'],
-                                    sublinear_tf=best_params['tfidf__sublinear_tf'])),
+            ('tfidf', TfidfVectorizer(stop_words='english', 
+                                      max_features=best_params['tfidf__max_features'], 
+                                      sublinear_tf=best_params['tfidf__sublinear_tf'], 
+                                      norm=best_params['tfidf__norm'])),
+            ('svd', TruncatedSVD(n_components=best_params['svd__n_components'])),
             ('norm', Normalizer()),
             ('clf', svm.SVC(C=best_params['clf__C'], gamma=best_params['clf__gamma'], kernel=best_params['clf__kernel'], probability=True))
         ]
@@ -224,11 +225,12 @@ if __name__ == '__main__':
         data_path = path.join(ROOT_PATH, 'data', 'test_data.txt')
         testData = load_data(data_path)
     else:
-        data_path = path.join(ROOT_PATH, 'data', 'data.txt')
-        data = load_data(data_path)
-        trainData, testData = trainTestSplit(data, test_Ratio=0.2, random_state=42)
+        data_path = path.join(ROOT_PATH, 'data', 'train_data.txt')
+        trainData = load_data(data_path)
+        data_path = path.join(ROOT_PATH, 'data', 'test_data.txt')
+        testData = load_data(data_path)
     
-    cvFlag = True
+    cvFlag = False
 
     # record training settings
     if edaFlag:
@@ -254,7 +256,7 @@ if __name__ == '__main__':
     test_accuracy = accuracy_score(testData['label'], y_pred)
     result = classification_report(testData['label'], y_pred)
 
-    print('Accuracy on test data:\n', test_accuracy)
+    print(f'Accuracy on test data:\n {test_accuracy:.3f}')
     print('Classification report on test data:\n', result)
 
     prefix = 'svm_tfidf_'    # save file prefix
@@ -265,6 +267,8 @@ if __name__ == '__main__':
         prefix += 'eda_'
     if cvFlag:
         prefix += 'cv_'
+    if not edaFlag and not cvFlag:
+        prefix += 'base_'
     
     metrics, auc_score = evaluate_model(
         pipe, 
@@ -274,40 +278,5 @@ if __name__ == '__main__':
         prefix
     )
     
+    print(f'model parameters: {pipe.named_steps["clf"].get_params()}')
     print('Results saved to:', save_dir)
-
-"""
-SVM + TFIDF + GridSearch:
-best params:
-{'clf__C': 100, 'clf__gamma': 'scale', 'clf__kernel': 'rbf', 'svd__n_components': 100, 'tfidf__max_features': 500, 'tfidf__norm': 'l2', 'tfidf__sublinear_tf': True}
-Best cross-validation score: 0.944
-Accuracy on test data:
- 0.9333333333333333
-Classification report on test data:
-               precision    recall  f1-score   support
-
-           0       0.95      0.92      0.93        59
-           1       0.92      0.95      0.94        61
-
-    accuracy                           0.93       120
-   macro avg       0.93      0.93      0.93       120
-weighted avg       0.93      0.93      0.93       120
-
-====================================================================================================
-
-SVM + TFIDF + EDA + GridSearch:
-best params:
-{'clf__C': 1, 'clf__gamma': 'scale', 'clf__kernel': 'rbf', 'svd__n_components': 50, 'tfidf__max_features': 500, 'tfidf__norm': 'l2', 'tfidf__sublinear_tf': False}
-Best cross-validation score: 0.942
-Accuracy on test data:
- 0.9333333333333333
-Classification report on test data:
-               precision    recall  f1-score   support
-
-           0       0.98      0.88      0.93        59
-           1       0.90      0.98      0.94        61
-
-    accuracy                           0.93       120
-   macro avg       0.94      0.93      0.93       120
-weighted avg       0.94      0.93      0.93       120
-"""
