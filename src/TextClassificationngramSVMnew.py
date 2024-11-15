@@ -229,7 +229,7 @@ if __name__ == '__main__':
         data = load_data(data_path)
         trainData, testData = trainTestSplit(data, test_Ratio=0.2, random_state=42)
     
-    cvFlag = False
+    cvFlag = True
 
     # record training settings
     if edaFlag:
@@ -269,13 +269,37 @@ if __name__ == '__main__':
     if not edaFlag and not cvFlag:
         prefix += 'base_'
 
-    metrics, auc_score = evaluate_model(
-        pipe, 
-        testData['output'], 
-        testData['label'],
-        save_dir,
-        prefix
-    )
-    
+    # metrics, auc_score = evaluate_model(
+    #     pipe, 
+    #     testData['output'], 
+    #     testData['label'],
+    #     save_dir,
+    #     prefix
+    # )
+    # print('Results saved to:', save_dir)
+
+    print(f'ngram parameters: {pipe.named_steps["ngram"].get_params()}')
+    print(f'svd parameters: {pipe.named_steps["svd"].get_params()}')
     print(f'model parameters: {pipe.named_steps["clf"].get_params()}')
-    print('Results saved to:', save_dir)
+
+"""
+SVM + N-gram + GridSearch:
+best params:
+{'clf__C': 10, 'clf__gamma': 'scale', 'clf__kernel': 'rbf', 'ngram__max_features': 2000, 'ngram__ngram_range': (1, 4), 'svd__n_components': 300}
+Best cross-validation score: 0.954
+Accuracy on test data:
+ 0.9166666666666666
+Classification report on test data:
+               precision    recall  f1-score   support
+
+           0       0.95      0.88      0.91        59
+           1       0.89      0.95      0.92        61
+
+    accuracy                           0.92       120
+   macro avg       0.92      0.92      0.92       120
+weighted avg       0.92      0.92      0.92       120
+
+ngram parameters: {'analyzer': 'word', 'binary': False, 'decode_error': 'strict', 'dtype': <class 'numpy.int64'>, 'encoding': 'utf-8', 'input': 'content', 'lowercase': True, 'max_df': 1.0, 'max_features': 2000, 'min_df': 1, 'ngram_range': (1, 4), 'preprocessor': None, 'stop_words': 'english', 'strip_accents': None, 'token_pattern': '(?u)\\b\\w\\w+\\b', 'tokenizer': None, 'vocabulary': None}
+svd parameters: {'algorithm': 'randomized', 'n_components': 300, 'n_iter': 5, 'n_oversamples': 10, 'power_iteration_normalizer': 'auto', 'random_state': None, 'tol': 0.0}
+model parameters: {'C': 10, 'break_ties': False, 'cache_size': 200, 'class_weight': None, 'coef0': 0.0, 'decision_function_shape': 'ovr', 'degree': 3, 'gamma': 'scale', 'kernel': 'rbf', 'max_iter': -1, 'probability': True, 'random_state': None, 'shrinking': True, 'tol': 0.001, 'verbose': False}
+"""

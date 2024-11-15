@@ -233,7 +233,7 @@ if __name__ == '__main__':
         data_path = path.join(ROOT_PATH, 'data', 'test_data.txt')
         testData = load_data(data_path)
     
-    cvFlag = False
+    cvFlag = True
 
     # record training settings
     if edaFlag:
@@ -273,13 +273,37 @@ if __name__ == '__main__':
     if not edaFlag and not cvFlag:
         prefix += 'base_'
     
-    metrics, auc_score = evaluate_model(
-        pipe, 
-        testData['output'], 
-        testData['label'],
-        save_dir,
-        prefix
-    )
+    # metrics, auc_score = evaluate_model(
+    #     pipe, 
+    #     testData['output'], 
+    #     testData['label'],
+    #     save_dir,
+    #     prefix
+    # )
+    # print('Results saved to:', save_dir)
     
+    print(f'tfidf parameters: {pipe.named_steps["tfidf"].get_params()}')
+    print(f'svd parameters: {pipe.named_steps["svd"].get_params()}')
     print(f'model parameters: {pipe.named_steps["clf"].get_params()}')
-    print('Results saved to:', save_dir)
+
+"""
+Best parameters:
+{'clf__C': 10.0, 'clf__max_iter': 300, 'clf__penalty': 'l2', 'clf__solver': 'lbfgs', 'svd__n_components': 100, 'tfidf__max_features': 1000, 'tfidf__norm': 'l2', 'tfidf__sublinear_tf': False}
+Best cross-validation score: 0.948
+
+Accuracy on test data: 0.925
+
+Classification report on test data:
+               precision    recall  f1-score   support
+
+           0       0.98      0.86      0.92        59
+           1       0.88      0.98      0.93        61
+
+    accuracy                           0.93       120
+   macro avg       0.93      0.92      0.92       120
+weighted avg       0.93      0.93      0.92       120
+
+tfidf parameters: {'analyzer': 'word', 'binary': False, 'decode_error': 'strict', 'dtype': <class 'numpy.float64'>, 'encoding': 'utf-8', 'input': 'content', 'lowercase': True, 'max_df': 1.0, 'max_features': 1000, 'min_df': 1, 'ngram_range': (1, 1), 'norm': 'l2', 'preprocessor': None, 'smooth_idf': True, 'stop_words': 'english', 'strip_accents': None, 'sublinear_tf': False, 'token_pattern': '(?u)\\b\\w\\w+\\b', 'tokenizer': None, 'use_idf': True, 'vocabulary': None}
+svd parameters: {'algorithm': 'randomized', 'n_components': 100, 'n_iter': 5, 'n_oversamples': 10, 'power_iteration_normalizer': 'auto', 'random_state': None, 'tol': 0.0}
+model parameters: {'C': 10.0, 'class_weight': None, 'dual': False, 'fit_intercept': True, 'intercept_scaling': 1, 'l1_ratio': None, 'max_iter': 100, 'multi_class': 'auto', 'n_jobs': None, 'penalty': 'l2', 'random_state': 42, 'solver': 'lbfgs', 'tol': 0.0001, 'verbose': 0, 'warm_start': False}
+"""

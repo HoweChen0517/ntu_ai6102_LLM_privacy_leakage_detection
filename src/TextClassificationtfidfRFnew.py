@@ -229,7 +229,7 @@ if __name__ == '__main__':
         data_path = path.join(ROOT_PATH, 'data', 'test_data.txt')
         testData = load_data(data_path)
     
-    cvFlag = False
+    cvFlag = True
 
     # record training settings
     if edaFlag:
@@ -269,15 +269,36 @@ if __name__ == '__main__':
     if not edaFlag and not cvFlag:
         prefix += 'base_'
     
-    metrics, auc_score = evaluate_model(
-        pipe, 
-        testData['output'], 
-        testData['label'],
-        save_dir,
-        prefix
-    )
-    
+    # metrics, auc_score = evaluate_model(
+    #     pipe, 
+    #     testData['output'], 
+    #     testData['label'],
+    #     save_dir,
+    #     prefix
+    # )
+    # print('Results saved to:', save_dir)
+
     print(f'tfidf parameters: {pipe.named_steps["tfidf"].get_params()}')
     print(f'svd parameters: {pipe.named_steps["svd"].get_params()}')
     print(f'model parameters: {pipe.named_steps["clf"].get_params()}')
-    print('Results saved to:', save_dir)
+"""
+RandomForest + TFIDF + GridSearch:
+best params:
+{'clf__max_depth': 30, 'clf__n_estimators': 100, 'svd__n_components': 100, 'tfidf__max_features': 1000, 'tfidf__norm': 'l1', 'tfidf__sublinear_tf': True}
+Best cross-validation score: 0.929
+Accuracy on test data:
+ 0.933
+Classification report on test data:
+               precision    recall  f1-score   support
+
+           0       1.00      0.86      0.93        59
+           1       0.88      1.00      0.94        61
+
+    accuracy                           0.93       120
+   macro avg       0.94      0.93      0.93       120
+weighted avg       0.94      0.93      0.93       120
+
+tfidf parameters: {'analyzer': 'word', 'binary': False, 'decode_error': 'strict', 'dtype': <class 'numpy.float64'>, 'encoding': 'utf-8', 'input': 'content', 'lowercase': True, 'max_df': 1.0, 'max_features': 1000, 'min_df': 1, 'ngram_range': (1, 1), 'norm': 'l1', 'preprocessor': None, 'smooth_idf': True, 'stop_words': 'english', 'strip_accents': None, 'sublinear_tf': True, 'token_pattern': '(?u)\\b\\w\\w+\\b', 'tokenizer': None, 'use_idf': True, 'vocabulary': None}
+svd parameters: {'algorithm': 'randomized', 'n_components': 100, 'n_iter': 5, 'n_oversamples': 10, 'power_iteration_normalizer': 'auto', 'random_state': None, 'tol': 0.0}
+model parameters: {'bootstrap': True, 'ccp_alpha': 0.0, 'class_weight': None, 'criterion': 'gini', 'max_depth': 30, 'max_features': 'sqrt', 'max_leaf_nodes': None, 'max_samples': None, 'min_impurity_decrease': 0.0, 'min_samples_leaf': 1, 'min_samples_split': 2, 'min_weight_fraction_leaf': 0.0, 'monotonic_cst': None, 'n_estimators': 100, 'n_jobs': None, 'oob_score': False, 'random_state': None, 'verbose': 0, 'warm_start': False}
+"""

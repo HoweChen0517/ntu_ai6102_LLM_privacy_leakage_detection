@@ -268,14 +268,37 @@ if __name__ == '__main__':
     if not edaFlag and not cvFlag:
         prefix += 'base_'
 
-    metrics, auc_score = evaluate_model(
-        pipe, 
-        testData['output'], 
-        testData['label'],
-        save_dir,
-        prefix
-    )
-    
-    print(f'model parameters: {pipe.named_steps["clf"].get_params()}')
-    print('Results saved to:', save_dir)
+    # metrics, auc_score = evaluate_model(
+    #     pipe, 
+    #     testData['output'], 
+    #     testData['label'],
+    #     save_dir,
+    #     prefix
+    # )
+    # print('Results saved to:', save_dir)
 
+    print(f'ngram parameters: {pipe.named_steps["ngram"].get_params()}')
+    print(f'svd parameters: {pipe.named_steps["svd"].get_params()}')
+    print(f'model parameters: {pipe.named_steps["clf"].get_params()}')
+    
+"""
+RandomForest + N-gram + GridSearch:
+best params:
+{'clf__max_depth': 30, 'clf__n_estimators': 200, 'ngram__max_features': 1000, 'ngram__ngram_range': (1, 2), 'svd__n_components': 200}
+Best cross-validation score: 0.929
+Accuracy on test data:
+ 0.9166666666666666
+Classification report on test data:
+               precision    recall  f1-score   support
+
+           0       0.95      0.88      0.91        59
+           1       0.89      0.95      0.92        61
+
+    accuracy                           0.92       120
+   macro avg       0.92      0.92      0.92       120
+weighted avg       0.92      0.92      0.92       120
+
+ngram parameters: {'analyzer': 'word', 'binary': False, 'decode_error': 'strict', 'dtype': <class 'numpy.int64'>, 'encoding': 'utf-8', 'input': 'content', 'lowercase': True, 'max_df': 1.0, 'max_features': 1000, 'min_df': 1, 'ngram_range': (1, 2), 'preprocessor': None, 'stop_words': 'english', 'strip_accents': None, 'token_pattern': '(?u)\\b\\w\\w+\\b', 'tokenizer': None, 'vocabulary': None}
+svd parameters: {'algorithm': 'randomized', 'n_components': 200, 'n_iter': 5, 'n_oversamples': 10, 'power_iteration_normalizer': 'auto', 'random_state': None, 'tol': 0.0}
+model parameters: {'bootstrap': True, 'ccp_alpha': 0.0, 'class_weight': None, 'criterion': 'gini', 'max_depth': 30, 'max_features': 'sqrt', 'max_leaf_nodes': None, 'max_samples': None, 'min_impurity_decrease': 0.0, 'min_samples_leaf': 1, 'min_samples_split': 2, 'min_weight_fraction_leaf': 0.0, 'monotonic_cst': None, 'n_estimators': 200, 'n_jobs': None, 'oob_score': False, 'random_state': None, 'verbose': 0, 'warm_start': False}
+"""

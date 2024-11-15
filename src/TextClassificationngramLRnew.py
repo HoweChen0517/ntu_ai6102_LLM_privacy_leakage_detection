@@ -237,7 +237,7 @@ if __name__ == '__main__':
         data_path = path.join(ROOT_PATH, 'data', 'test_data.txt')
         testData = load_data(data_path)
     
-    cvFlag = False
+    cvFlag = True
 
     # record training settings
     if edaFlag:
@@ -277,19 +277,39 @@ if __name__ == '__main__':
     if not edaFlag and not cvFlag:
         prefix += 'base_'
     
-    metrics, auc_score = evaluate_model(
-        pipe, 
-        testData['output'], 
-        testData['label'],
-        save_dir,
-        prefix
-    )
+    # metrics, auc_score = evaluate_model(
+    #     pipe, 
+    #     testData['output'], 
+    #     testData['label'],
+    #     save_dir,
+    #     prefix
+    # )
+    #  print('Results saved to:', save_dir)
     
+    print(f'ngram parameters: {pipe.named_steps["ngram"].get_params()}')
+    print(f'svd parameters: {pipe.named_steps["svd"].get_params()}')
     print(f'model parameters: {pipe.named_steps["clf"].get_params()}')
-    print('Results saved to:', save_dir)
-    # print("\nEvaluation Metrics:")
-    # print(f"Accuracy: {metrics['accuracy']:.3f}")
-    # print(f"Precision: {metrics['precision']:.3f}")
-    # print(f"Recall: {metrics['recall']:.3f}")
-    # print(f"F1-score: {metrics['f1_score']:.3f}")
-    # print(f"AUC-ROC: {auc_score:.3f}")
+
+"""
+LogisticRegression + N-gram + GridSearch:
+Fitting 5 folds for each of 2187 candidates, totalling 10935 fits
+Best parameters:
+{'clf__C': 10.0, 'clf__max_iter': 200, 'clf__penalty': 'l2', 'clf__solver': 'saga', 'ngram__max_features': 2000, 'ngram__ngram_range': (1, 2), 'svd__n_components': 300}
+Best cross-validation score: 0.944
+
+Accuracy on test data: 0.9083333333333333
+
+Classification report on test data:
+               precision    recall  f1-score   support
+
+           0       0.94      0.86      0.90        59
+           1       0.88      0.95      0.91        61
+
+    accuracy                           0.91       120
+   macro avg       0.91      0.91      0.91       120
+weighted avg       0.91      0.91      0.91       120
+
+ngram parameters: {'analyzer': 'word', 'binary': False, 'decode_error': 'strict', 'dtype': <class 'numpy.int64'>, 'encoding': 'utf-8', 'input': 'content', 'lowercase': True, 'max_df': 1.0, 'max_features': 2000, 'min_df': 1, 'ngram_range': (1, 2), 'preprocessor': None, 'stop_words': 'english', 'strip_accents': None, 'token_pattern': '(?u)\\b\\w\\w+\\b', 'tokenizer': None, 'vocabulary': None}
+svd parameters: {'algorithm': 'randomized', 'n_components': 300, 'n_iter': 5, 'n_oversamples': 10, 'power_iteration_normalizer': 'auto', 'random_state': None, 'tol': 0.0}
+model parameters: {'C': 10.0, 'class_weight': None, 'dual': False, 'fit_intercept': True, 'intercept_scaling': 1, 'l1_ratio': None, 'max_iter': 100, 'multi_class': 'auto', 'n_jobs': None, 'penalty': 'l2', 'random_state': 42, 'solver': 'saga', 'tol': 0.0001, 'verbose': 0, 'warm_start': False}
+"""
