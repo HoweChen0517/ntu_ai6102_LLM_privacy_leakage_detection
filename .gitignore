@@ -5,3 +5,5 @@
 /data/*.txt
 /data/*.json
 /figs/*.pptx
+/src/wandb/
+/checkpoints/
